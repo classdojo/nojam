@@ -1,0 +1,2 @@
+[commands]
+make=make clean all
