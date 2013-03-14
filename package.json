@@ -1,0 +1,21 @@
+{
+  "name": "nojam",
+  "version": "0.0.0",
+  "description": "nodejam =======",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/classdojo/nojam.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "b5528810b58d34ff76442c4b33e1ea7f2192a275",
+  "dependencies": {
+    "amdify": "0.0.x",
+    "commander": "1.1.x"
+  }
+}
