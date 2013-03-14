@@ -17,7 +17,7 @@ module.exports = class
   constructor: (ops, packageManagers) ->
     @_jam = packageManagers.packageManagers.jam
     @_directory = process.cwd()
-    @_output = @_directory + "/" + (dref.get(ops.pkg, "jam.public.vendor") or "jam");
+    @_output = @_directory + "/" + (dref.get(ops.pkg, "jam.packageDir") or "jam");
 
 
   ###
