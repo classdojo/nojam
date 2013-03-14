@@ -2,7 +2,7 @@
   "name": "nojam",
   "version": "0.0.0",
   "description": "nodejam =======",
-  "main": "index.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,6 +16,15 @@
   "gitHead": "b5528810b58d34ff76442c4b33e1ea7f2192a275",
   "dependencies": {
     "amdify": "0.0.x",
-    "commander": "1.1.x"
+    "commander": "1.1.x",
+    "async": "0.2.x",
+    "dref": "0.0.x",
+    "outcome": "0.0.x",
+    "sift": "0.0.x",
+    "stepc": "0.0.x",
+    "toarray": "0.0.x"
+  },
+  "bin": {
+    "nojam": "./bin/nojam"
   }
 }
