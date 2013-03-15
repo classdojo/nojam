@@ -17,7 +17,14 @@ module.exports = class
     @_jam = packageManagers.packageManagers.jam
     @_directory = process.cwd()
     @_prefix =  (dref.get(ops.pkg, "jam.packageDir") or "jam");
+
+    baseDir = dref.get(ops.pkg, "jam.baseUrl") or ""
+
+
     @_output = @_directory + "/" + @_prefix
+    @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
+    @_baseDir = @_directory + "/" + baseDir
+    
 
 
   ###
@@ -66,12 +73,6 @@ module.exports = class
         callback()
     ), callback
 
-
-  
-
-
-
-
   ###
   ###
 
@@ -80,12 +81,10 @@ module.exports = class
 
     amdify {
       entry: require.resolve(dir),
-      directory: @_directory,
       prefix: @_prefix
     }, outcome.e(callback).s (bundle) =>
 
-
       transformer = new at.Template("amd")
-      transformer = new at.Copy({ output: @_directory }, transformer)
+      transformer = new at.Copy({ output: @_baseDir }, transformer)
 
       bundle.transform(transformer, callback)
