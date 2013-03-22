@@ -13,7 +13,8 @@ module.exports = class
   ###
   ###
 
-  constructor: (ops, packageManagers) ->
+  constructor: (@ops, packageManagers) ->
+    
     @_jam = packageManagers.packageManagers.jam
     @_directory = process.cwd()
     @_prefix =  (dref.get(ops.pkg, "jam.packageDir") or "jam");
@@ -25,7 +26,6 @@ module.exports = class
     @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
     @_baseDir = @_directory + "/" + baseDir
     
-
 
   ###
   ###
@@ -46,13 +46,35 @@ module.exports = class
         this null, self._fixDirs(dir, dirs)
       ),
       (o.s (dirs) ->
+        this.dirs = dirs
         self._amdifyAll dirs, this
+      ),
+      (o.s () ->
+        self._fixPackage this.dirs, this
       ),
       (o.s () ->
         self._jam.rebuild @
       ),
       callback
     )
+
+  ###
+  ###
+
+  _fixPackage: (dirs, next) ->
+    return next()
+
+    d = {}
+
+    dirs.map (dir) =>
+      bn = path.basename(dir)
+      d[bn] = path.join(@_prefix, bn, require.resolve(dir).replace(dir, "").replace(".js", ""))
+
+
+    dref.set @ops.pkg, "jam.config.paths", d
+
+    fs.writeFile path.join(@ops.dir, "package.json"), JSON.stringify(@ops.pkg, null, 2), next
+
 
   ###
   ###
@@ -78,13 +100,14 @@ module.exports = class
 
   _amdify: (dir, callback) ->
 
-
     amdify {
       entry: require.resolve(dir),
-      prefix: @_prefix
+      prefix: ""
     }, outcome.e(callback).s (bundle) =>
 
+      #console.log @_output, @_prefix
+
       transformer = new at.Template("amd")
-      transformer = new at.Copy({ output: @_baseDir }, transformer)
+      transformer = new at.Copy({ output: @_output }, transformer)
 
       bundle.transform(transformer, callback)

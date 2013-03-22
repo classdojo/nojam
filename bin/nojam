@@ -2,7 +2,8 @@
 var commander = require("commander"),
 NoJam = require("../"),
 noJam = new NoJam({
-  pkg: loadPackage()
+  pkg: loadPackage(),
+  dir: process.cwd()
 });
 
 commander.
