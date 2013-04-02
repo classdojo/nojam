@@ -73,7 +73,9 @@ module.exports = class
 
     dref.set @ops.pkg, "jam.config.paths", d
 
-    fs.writeFile path.join(@ops.dir, "package.json"), JSON.stringify(@ops.pkg, null, 2), next
+    pkgPath = path.join(@ops.dir, "package.json")
+
+    fs.writeFile pkgPath, JSON.stringify(@ops.pkg, null, 2), next
 
 
   ###
