@@ -38,6 +38,7 @@ module.exports = class
     self = @
 
 
+
     stepc.async(
       (() ->
         fs.readdir dir, @
@@ -83,7 +84,11 @@ module.exports = class
 
   _fixDirs: (base, dirs) ->
     dirs.map((d) ->
-      base + "/" + d
+      path = base + "/" + d
+      stat = fs.lstatSync(path)
+      if stat.isSymbolicLink()
+        path = fs.readlinkSync path
+      path
     ).filter (d) ->
       path.basename(d).substr(0,1) isnt "." and fs.lstatSync(d).isDirectory()
 
