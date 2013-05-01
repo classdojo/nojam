@@ -85,8 +85,7 @@ module.exports = class
   _fixDirs: (base, dirs) ->
     dirs.map((d) ->
       pt = base + "/" + d
-      stat = fs.lstatSync(pt)
-      if stat.isSymbolicLink()
+      while (stat = fs.lstatSync(pt)).isSymbolicLink()
         pt = fs.readlinkSync pt
       pt
     ).filter (d) ->
