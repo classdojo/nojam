@@ -84,11 +84,11 @@ module.exports = class
 
   _fixDirs: (base, dirs) ->
     dirs.map((d) ->
-      path = base + "/" + d
-      stat = fs.lstatSync(path)
+      pt = base + "/" + d
+      stat = fs.lstatSync(pt)
       if stat.isSymbolicLink()
-        path = fs.readlinkSync path
-      path
+        pt = fs.readlinkSync pt
+      pt
     ).filter (d) ->
       path.basename(d).substr(0,1) isnt "." and fs.lstatSync(d).isDirectory()
 
