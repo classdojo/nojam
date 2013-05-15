@@ -25,6 +25,7 @@ module.exports = class
     @_output = @_directory + "/" + @_prefix
     @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
     @_baseDir = @_directory + "/" + baseDir
+    @_usedDeps = {}
     
 
   ###
@@ -115,5 +116,8 @@ module.exports = class
 
       transformer = new at.Template("amd")
       transformer = new at.Copy({ output: @_output }, transformer)
+      transformer.filter (dep) =>
+        if @_usedDeps[dep.alias] then false else (@_usedDeps[dep.alias] = true)
+
 
       bundle.transform(transformer, callback)
