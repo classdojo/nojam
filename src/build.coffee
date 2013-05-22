@@ -7,6 +7,7 @@ outcome = require "outcome"
 fs = require "fs"
 path = require "path"
 dref = require "dref"
+spawn = require("child_process").spawn
 
 module.exports = class
   
@@ -26,6 +27,7 @@ module.exports = class
     @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
     @_baseDir = @_directory + "/" + baseDir
     @_usedDeps = {}
+
     
 
   ###
@@ -33,18 +35,24 @@ module.exports = class
 
   run: (callback) ->
 
+    @_buildJamDeps () => @_jam.rebuild callback
+
+    ###
     o = outcome.e callback
     dir = @_directory + "/node_modules"
     output = @_output
     self = @
 
 
-
     stepc.async(
       (() ->
         fs.readdir dir, @
       ),
-      (o.s (dirs) ->
+      ((err, dirs = []) ->
+
+        if self.ops.pkg.nojam?.ignoreNodeModules
+          return this null, []
+
         this null, self._fixDirs(dir, dirs)
       ),
       (o.s (dirs) ->
@@ -59,6 +67,58 @@ module.exports = class
       ),
       callback
     )
+    ###
+
+  ###
+  ###
+
+  _buildJamDeps: (callback) ->
+    self = @
+    stepc.async(
+      (() ->
+        fs.readdir self._output, @
+      ),
+      ((err, dirs = []) ->
+        async.eachSeries dirs, ((dir, next) ->
+          return next() if dir is ".DS_Store"
+          return next() unless fs.lstatSync(self._output + "/" + dir).isDirectory()
+          self._rebuildDir dir, next
+        ), @
+      ),
+      callback
+    )
+
+  ###
+  ###
+
+  _rebuildDir: (dir, callback) ->
+
+    fdir = @_output + "/" + dir
+    pkgPath = fdir + "/package.json"
+    nodeModulesDir = fdir + "/node_modules"
+    pkg = require pkgPath
+    return callback() if not pkg.dependencies
+    self = @
+
+    stepc.async(
+      (() ->
+        return @() if fs.existsSync(nodeModulesDir) or not Object.keys(pkg.dependencies).length
+        spawn("npm", ["install"], { cwd: fdir }).once("close", @)
+      ),
+      (() ->
+        fs.readdir nodeModulesDir, @
+      ),
+      ((err, dirs = []) ->
+        async.eachSeries Object.keys(pkg.dependencies), ((dir, next) ->
+          return next() if /\.bin|\.DS_Store/.test dir
+          return next() if fs.existsSync(self._output + "/" + dir)
+          fp = nodeModulesDir + "/" + dir
+          self._amdify fp, next
+        ), @
+      ),
+      callback
+    )
+
 
   ###
   ###
