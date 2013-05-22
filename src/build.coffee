@@ -99,19 +99,22 @@ module.exports = class
     pkg = require pkgPath
     return callback() if not pkg.dependencies
     self = @
+    deps = Object.keys(pkg.dependencies).filter (dep) ->
+      not fs.existsSync(self._output + "/" + dep)
 
     stepc.async(
       (() ->
-        return @() if fs.existsSync(nodeModulesDir) or not Object.keys(pkg.dependencies).length
-        spawn("npm", ["install"], { cwd: fdir }).once("close", @)
+        return @() if fs.existsSync(nodeModulesDir)
+        spawn("npm", ["install"], { cwd: fdir }).once("close", () =>
+          @()
+        )
       ),
       (() ->
         fs.readdir nodeModulesDir, @
       ),
       ((err, dirs = []) ->
-        async.eachSeries Object.keys(pkg.dependencies), ((dir, next) ->
+        async.eachSeries deps, ((dir, next) ->
           return next() if /\.bin|\.DS_Store/.test dir
-          return next() if fs.existsSync(self._output + "/" + dir)
           fp = nodeModulesDir + "/" + dir
           self._amdify fp, next
         ), @
