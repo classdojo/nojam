@@ -116,7 +116,7 @@ module.exports = class
         async.eachSeries deps, ((dir, next) ->
           return next() if /\.bin|\.DS_Store/.test dir
           fp = nodeModulesDir + "/" + dir
-          self._amdify fp, next
+          self._amdify fp, () -> next()
         ), @
       ),
       callback
