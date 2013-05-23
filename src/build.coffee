@@ -35,7 +35,8 @@ module.exports = class
 
   run: (callback) ->
 
-    @_buildJamDeps () => @_jam.rebuild callback
+    @_rebuildDir @_directory, () => @_buildJamDeps () => @_jam.rebuild callback
+
 
     ###
     o = outcome.e callback
@@ -82,7 +83,7 @@ module.exports = class
         async.eachSeries dirs, ((dir, next) ->
           return next() if dir is ".DS_Store"
           return next() unless fs.lstatSync(self._output + "/" + dir).isDirectory()
-          self._rebuildDir dir, next
+          self._rebuildDir self._output + "/" + dir, next
         ), @
       ),
       callback
@@ -93,13 +94,15 @@ module.exports = class
 
   _rebuildDir: (dir, callback) ->
 
-    fdir = @_output + "/" + dir
+    fdir = dir
     pkgPath = fdir + "/package.json"
     nodeModulesDir = fdir + "/node_modules"
     pkg = require pkgPath
-    return callback() if not pkg.dependencies
+    deps = pkg.nojam?.dependencies ? pkg.dependencies
+
+    return callback() if not deps
     self = @
-    deps = Object.keys(pkg.dependencies).filter (dep) ->
+    deps = Object.keys(deps).filter (dep) ->
       not fs.existsSync(self._output + "/" + dep)
 
     stepc.async(
