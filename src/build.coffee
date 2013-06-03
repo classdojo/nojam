@@ -109,7 +109,6 @@ module.exports = class
     #deps = deps.filter (dep) ->
     #  not fs.existsSync(self._output + "/" + dep)
 
-
     stepc.async(
       (() ->
         spawn("npm", ["install"], { cwd: fdir }).once("close", () =>
@@ -122,12 +121,13 @@ module.exports = class
       ((err, dirs = []) ->
 
         dirs = dirs.filter (dir) -> 
-          ~deps.indexOf dir
+          ~deps.indexOf(dir) and not fs.existsSync(self._output + "/" + dir)
 
 
         async.eachSeries dirs, ((dir, next) ->
           return next() if /\.bin|\.DS_Store/.test dir
           fp = nodeModulesDir + "/" + dir
+          console.log "install %s", dir
           self._amdify fp, () -> 
             next()
         ), @
