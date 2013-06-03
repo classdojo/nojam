@@ -35,6 +35,8 @@ module.exports = class
 
   run: (callback) ->
 
+    console.log @_directory
+
     @_rebuildDir @_directory, () => @_buildJamDeps () => @_jam.rebuild callback
 
 
@@ -81,6 +83,7 @@ module.exports = class
       ),
       ((err, dirs = []) ->
         async.eachSeries dirs, ((dir, next) ->
+          console.log "install %s", dir
           return next() if dir is ".DS_Store"
           return next() unless fs.lstatSync(self._output + "/" + dir).isDirectory()
           self._rebuildDir self._output + "/" + dir, next
@@ -98,16 +101,17 @@ module.exports = class
     pkgPath = fdir + "/package.json"
     nodeModulesDir = fdir + "/node_modules"
     pkg = require pkgPath
-    deps = pkg.nojam?.dependencies ? pkg.dependencies
+    deps = Object.keys pkg.nojam?.dependencies ? pkg.dependencies ? {}
 
-    return callback() if not deps
+
+    return callback() unless deps.length
     self = @
-    deps = Object.keys(deps).filter (dep) ->
-      not fs.existsSync(self._output + "/" + dep)
+    #deps = deps.filter (dep) ->
+    #  not fs.existsSync(self._output + "/" + dep)
+
 
     stepc.async(
       (() ->
-        return @() if fs.existsSync(nodeModulesDir)
         spawn("npm", ["install"], { cwd: fdir }).once("close", () =>
           @()
         )
@@ -116,10 +120,16 @@ module.exports = class
         fs.readdir nodeModulesDir, @
       ),
       ((err, dirs = []) ->
-        async.eachSeries deps, ((dir, next) ->
+
+        dirs = dirs.filter (dir) -> 
+          ~deps.indexOf dir
+
+
+        async.eachSeries dirs, ((dir, next) ->
           return next() if /\.bin|\.DS_Store/.test dir
           fp = nodeModulesDir + "/" + dir
-          self._amdify fp, () -> next()
+          self._amdify fp, () -> 
+            next()
         ), @
       ),
       callback
@@ -162,28 +172,17 @@ module.exports = class
   ###
   ###
 
-  _amdifyAll: (dirs, callback) ->
-    async.map dirs, ((dir, callback) =>
-      @_amdify dir, (err) ->
-        callback()
-    ), callback
-
-  ###
-  ###
-
   _amdify: (dir, callback) ->
+
 
     amdify {
       entry: require.resolve(dir),
       prefix: ""
     }, outcome.e(callback).s (bundle) =>
 
-      #console.log @_output, @_prefix
-
       transformer = new at.Template("amd")
       transformer = new at.Copy({ output: @_output }, transformer)
       transformer.filter (dep) =>
         if @_usedDeps[dep.alias] then false else (@_usedDeps[dep.alias] = true)
-
 
       bundle.transform(transformer, callback)
