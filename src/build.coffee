@@ -26,7 +26,11 @@ module.exports = class
     @_output = @_directory + "/" + @_prefix
     @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
     @_baseDir = @_directory + "/" + baseDir
-    @_usedDeps = {}
+    @_usedDeps = fs.readdirSync(@_output).map (dir) =>  
+      try 
+        require.resolve(@_output + "/" + dir).replace(@_output + "/", "")
+      catch e
+        undefined
 
     
 
@@ -35,42 +39,8 @@ module.exports = class
 
   run: (callback) ->
 
-    console.log @_directory
-
     @_rebuildDir @_directory, () => @_buildJamDeps () => @_jam.rebuild callback
 
-
-    ###
-    o = outcome.e callback
-    dir = @_directory + "/node_modules"
-    output = @_output
-    self = @
-
-
-    stepc.async(
-      (() ->
-        fs.readdir dir, @
-      ),
-      ((err, dirs = []) ->
-
-        if self.ops.pkg.nojam?.ignoreNodeModules
-          return this null, []
-
-        this null, self._fixDirs(dir, dirs)
-      ),
-      (o.s (dirs) ->
-        this.dirs = dirs
-        self._amdifyAll dirs, this
-      ),
-      (o.s () ->
-        self._fixPackage this.dirs, this
-      ),
-      (o.s () ->
-        self._jam.rebuild @
-      ),
-      callback
-    )
-    ###
 
   ###
   ###
@@ -120,8 +90,9 @@ module.exports = class
       ),
       ((err, dirs = []) ->
 
-        dirs = dirs.filter (dir) -> 
+        dirs = dirs.filter (dir) ->
           ~deps.indexOf(dir) and not fs.existsSync(self._output + "/" + dir)
+
 
 
         async.eachSeries dirs, ((dir, next) ->
@@ -182,7 +153,8 @@ module.exports = class
 
       transformer = new at.Template("amd")
       transformer = new at.Copy({ output: @_output }, transformer)
+
       transformer.filter (dep) =>
-        if @_usedDeps[dep.alias] then false else (@_usedDeps[dep.alias] = true)
+        if ~@_usedDeps.indexOf(dep.alias) then false else (@_usedDeps.push(dep.alias))
 
       bundle.transform(transformer, callback)
