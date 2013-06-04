@@ -8,6 +8,7 @@ fs = require "fs"
 path = require "path"
 dref = require "dref"
 spawn = require("child_process").spawn
+glob = require "glob"
 
 module.exports = class
   
@@ -26,11 +27,7 @@ module.exports = class
     @_output = @_directory + "/" + @_prefix
     @_prefix = @_prefix.replace(new RegExp("^#{baseDir}"), "")
     @_baseDir = @_directory + "/" + baseDir
-    @_usedDeps = fs.readdirSync(@_output).map (dir) =>  
-      try 
-        require.resolve(@_output + "/" + dir).replace(@_output + "/", "")
-      catch e
-        undefined
+    @_usedDeps = glob.sync("**", { cwd: @_output })
 
     
 
