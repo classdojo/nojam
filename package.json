@@ -22,7 +22,8 @@
     "outcome": "0.0.x",
     "sift": "0.0.x",
     "stepc": "0.0.x",
-    "toarray": "0.0.x"
+    "toarray": "0.0.x",
+    "glob": "3.2.x"
   },
   "bin": {
     "nojam": "./bin/nojam"
