@@ -36,7 +36,9 @@ module.exports = class
 
   run: (callback) ->
 
-    @_rebuildDir @_directory, () => @_buildJamDeps () => @_jam.rebuild callback
+    @_rebuildDir @_directory, () => 
+      @_buildJamDeps () => 
+        @_jam.rebuild callback
 
 
   ###
@@ -49,6 +51,7 @@ module.exports = class
         fs.readdir self._output, @
       ),
       ((err, dirs = []) ->
+        self._fixPackages dirs
         async.eachSeries dirs, ((dir, next) ->
           console.log "install %s", dir
           return next() if dir is ".DS_Store"
@@ -67,6 +70,7 @@ module.exports = class
     fdir = dir
     pkgPath = fdir + "/package.json"
     nodeModulesDir = fdir + "/node_modules"
+    return callback() unless fs.existsSync(pkgPath)
     pkg = require pkgPath
     deps = Object.keys pkg.nojam?.dependencies ? pkg.dependencies ? {}
 
@@ -107,21 +111,16 @@ module.exports = class
   ###
   ###
 
-  _fixPackage: (dirs, next) ->
-    return next()
+  _fixPackages: (dirs) ->
 
-    d = {}
+    for name in dirs
+      dir = @_output + "/" + name 
+      pkgPath = dir + "/package.json"
+      continue unless fs.lstatSync(dir).isDirectory()
+      unless fs.existsSync pkgPath
+        console.log "writing package %s", pkgPath
+        fs.writeFileSync pkgPath, JSON.stringify({ name: name, description: name }, null, 2), "utf8"
 
-    dirs.map (dir) =>
-      bn = path.basename(dir)
-      d[bn] = path.join(@_prefix, bn, require.resolve(dir).replace(dir, "").replace(".js", ""))
-
-
-    dref.set @ops.pkg, "jam.config.paths", d
-
-    pkgPath = path.join(@ops.dir, "package.json")
-
-    fs.writeFile pkgPath, JSON.stringify(@ops.pkg, null, 2), next
 
 
   ###
