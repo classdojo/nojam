@@ -19,6 +19,7 @@ module.exports = class
     
     @_jam = packageManagers.packageManagers.jam
     @_directory = process.cwd()
+    @_ignore = ops.nojam?.ignore or []
     @_prefix =  (dref.get(ops.pkg, "jam.packageDir") or "jam");
 
     baseDir = dref.get(ops.pkg, "jam.baseUrl") or ""
@@ -54,6 +55,7 @@ module.exports = class
         self._fixPackages dirs
         async.eachSeries dirs, ((dir, next) ->
           console.log "install %s", dir
+          return if self._checkIgnore(dir, next)
           return next() if dir is ".DS_Store"
           return next() unless fs.lstatSync(self._output + "/" + dir).isDirectory()
           self._rebuildDir self._output + "/" + dir, next
@@ -67,12 +69,15 @@ module.exports = class
 
   _rebuildDir: (dir, callback) ->
 
+    return if @_checkIgnore(dir, callback)
+
     fdir = dir
     pkgPath = fdir + "/package.json"
     nodeModulesDir = fdir + "/node_modules"
     return callback() unless fs.existsSync(pkgPath)
     pkg = require pkgPath
     deps = Object.keys pkg.nojam?.dependencies ? pkg.dependencies ? {}
+    @_ignore = (pkg.nojam?.ignore or []).concat @_ignore or []
 
 
     return callback() unless deps.length
@@ -94,12 +99,11 @@ module.exports = class
         dirs = dirs.filter (dir) ->
           ~deps.indexOf(dir) and not fs.existsSync(self._output + "/" + dir)
 
-
-
         async.eachSeries dirs, ((dir, next) ->
           return next() if /\.bin|\.DS_Store/.test dir
           fp = nodeModulesDir + "/" + dir
           console.log "install %s", dir
+          return if self._checkIgnore(dir, next)
           self._amdify fp, () -> 
             next()
         ), @
@@ -122,6 +126,18 @@ module.exports = class
         fs.writeFileSync pkgPath, JSON.stringify({ name: name, description: name }, null, 2), "utf8"
 
 
+  ###
+  ###
+
+  _checkIgnore: (dir, next) ->
+
+    if ~@_ignore.indexOf dir
+      console.log "skip %s", dir
+      next()
+      return true
+
+    return false
+
 
   ###
   ###
@@ -141,6 +157,7 @@ module.exports = class
 
   _amdify: (dir, callback) ->
 
+    return if @_checkIgnore(dir, callback)
 
     amdify {
       entry: require.resolve(dir),

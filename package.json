@@ -1,6 +1,6 @@
 {
   "name": "nojam",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "nodejam =======",
   "main": "./lib/index.js",
   "scripts": {
