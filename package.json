@@ -26,7 +26,8 @@
     "step": "0.0.5",
     "outcome": "0.0.18",
     "amdify": "0.0.21",
-    "async": "~0.2.9"
+    "async": "~0.2.9",
+    "resolve": "0.4.x"
   },
   "bin": {
     "nojam": "./bin/nojam"
