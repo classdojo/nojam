@@ -1,37 +1,23 @@
 #!/usr/bin/env node
 var commander = require("commander"),
-NoJam = require("../"),
-noJam = new NoJam({
-  pkg: loadPackage(),
-  dir: process.cwd()
-});
+NoJam = require("..");
 
-commander.
-command("install").
-description("installs a package from NPM, or JAM").
-action(function() {
-  var packages = Array.prototype.slice.call(arguments);
-  packages.pop()
-  noJam.install(packages);
+
+nojam = new NoJam({
+  pkg: require(process.cwd() + "/package.json"),
+  cwd: process.cwd()
 })
-
 
 commander.
 command("rebuild").
 description("rebuilds the NPM modules as JAM modules").
 action(function() {
-  noJam.rebuild();
+  nojam.rebuild(function(err) {
+    if(err) return console.error(err.stack);
+    console.log("done");
+  });
 })
 
 
 commander.parse(process.argv);
 
-
-
-function loadPackage() {
-  try {
-    return require(process.cwd() + "/package.json");
-  } catch(e) {
-    return {}
-  }
-}

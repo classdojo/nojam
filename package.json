@@ -1,6 +1,6 @@
 {
   "name": "nojam",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "nodejam =======",
   "main": "./lib/index.js",
   "scripts": {
@@ -14,16 +14,19 @@
   "license": "BSD",
   "readmeFilename": "README.md",
   "gitHead": "b5528810b58d34ff76442c4b33e1ea7f2192a275",
+  "nojam": {
+    "dependencies": [
+      "step",
+      "outcome",
+      "async"
+    ]
+  },
   "dependencies": {
-    "amdify": "0.0.x",
-    "commander": "1.1.x",
-    "async": "0.2.x",
-    "dref": "0.0.x",
-    "outcome": "0.0.x",
-    "sift": "0.0.x",
-    "stepc": "0.0.x",
-    "toarray": "0.0.x",
-    "glob": "3.2.x"
+    "commander": "~2.0.0",
+    "step": "0.0.5",
+    "outcome": "0.0.18",
+    "amdify": "0.0.21",
+    "async": "~0.2.9"
   },
   "bin": {
     "nojam": "./bin/nojam"
