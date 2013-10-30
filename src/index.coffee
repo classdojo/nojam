@@ -46,7 +46,7 @@ class NoJam
     console.log("scanning dependencies: %s", @_dependencies.map((ops) -> ops.name).join(", "))
 
     async.map @_dependencies, ((info, next) ->
-      amdify { entry: info.path }, outcome.e(next).s (bundle) ->
+      amdify { entry: info.path, platform: "browser" }, outcome.e(next).s (bundle) ->
         bundle.name = info.name
         next null, bundle
     ), next

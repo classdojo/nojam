@@ -1,6 +1,6 @@
 {
   "name": "nojam",
-  "version": "0.2.1",
+  "version": "0.2.3gi",
   "description": "nodejam =======",
   "main": "./lib/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "commander": "~2.0.0",
     "step": "0.0.5",
     "outcome": "0.0.18",
-    "amdify": "0.0.21",
+    "amdify": "0.0.x",
     "async": "~0.2.9",
     "resolve": "0.4.x",
     "underscore": "~1.5.1"
